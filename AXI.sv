@@ -1,7 +1,12 @@
+// define
 `include "./AXI_define.svh"
+// Interface
 `include "./Interface/AXI/AXI_S_IF.sv"
 `include "./Interface/AXI/AXI_M_IF.sv"
+// ASYN_FIFO
 `include "./ASYN_FIFO/ASYN_FIFO.sv"
+`include "./ASYN_FIFO/FIFO_MEM.sv"
+`include "./ASYN_FIFO/2DFF.sv"
 
 module AXI (
   input logic                       CPU_CLK_i,      
@@ -241,15 +246,15 @@ module AXI (
   
 );
 
-  AXI_S_IF AXI_S_IF_S0();
-  AXI_S_IF AXI_S_IF_S1();
+  AXI_S_IF AXI_S_IF_S0 ();
+  AXI_S_IF AXI_S_IF_S1 ();
 
 
-  AXI_M_IF AXI_M_IF_M0();
-  AXI_M_IF AXI_M_IF_M1();  
-  AXI_M_IF AXI_M_IF_M2();
-  AXI_M_IF AXI_M_IF_M3();
-  AXI_M_IF AXI_M_IF_M4();
-  AXI_M_IF AXI_M_IF_M5();
+  AXI_M_IF AXI_M_IF_M0 ();
+  AXI_M_IF AXI_M_IF_M1 ();  
+  AXI_M_IF AXI_M_IF_M2 ();
+  AXI_M_IF AXI_M_IF_M3 ();
+  AXI_M_IF AXI_M_IF_M4 ();
+  AXI_M_IF AXI_M_IF_M5 ();
 
 endmodule
