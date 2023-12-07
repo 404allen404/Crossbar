@@ -48,10 +48,11 @@ module AXI_S_IF (
 
 );
 
-  ASYN_FIFO AR_FIFO();
-  ASYN_FIFO AW_FIFO();
-  ASYN_FIFO W_FIFO();
-  ASYN_FIFO R_FIFO();
-  ASYN_FIFO B_FIFO();
+  // #(DATA_SIZE, ADDR_SIZE)
+  ASYN_FIFO #() AR_FIFO();
+  ASYN_FIFO #() AW_FIFO();
+  ASYN_FIFO #() W_FIFO();
+  ASYN_FIFO #() R_FIFO();
+  ASYN_FIFO #() B_FIFO();
 
 endmodule

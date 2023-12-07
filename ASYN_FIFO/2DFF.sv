@@ -1,18 +1,20 @@
-module 2DFF (sclk, srst, data_in, data_out);
+module 2DFF 
+  #(
+    parameter ADDR_SIZE = 3
+  )
+  (dclk, drst, data_in, data_out);
 
-  parameter DATA_SIZE = 3;
+  input  logic dclk; // destination clk
+  input  logic drst; // destination rst
+  input  logic [ADDR_SIZE:0] data_in;
+  output logic [ADDR_SIZE:0] data_out;
 
-  input  logic sclk; // source clk
-  input  logic srst; // source rst
-  input  logic [DATA_SIZE-1:0] data_in;
-  output logic [DATA_SIZE-1:0] data_out;
+  logic [ADDR_SIZE:0] tmp_data; 
 
-  logic [DATA_SIZE-1:0] tmp_data; 
-
-  always_ff @(posedge sclk) begin
-    if(srst) begin
-      tmp_data <= DATA_SIZE'd0;
-      data_out <= DATA_SIZE'd0;
+  always_ff @(posedge dclk) begin
+    if(drst) begin
+      tmp_data <= (ADDR_SIZE+1)'d0;
+      data_out <= (ADDR_SIZE+1)'d0;
     end
     else begin
       tmp_data <= data_in;

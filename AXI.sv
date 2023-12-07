@@ -249,7 +249,6 @@ module AXI (
   AXI_S_IF AXI_S_IF_S0 ();
   AXI_S_IF AXI_S_IF_S1 ();
 
-
   AXI_M_IF AXI_M_IF_M0 ();
   AXI_M_IF AXI_M_IF_M1 ();  
   AXI_M_IF AXI_M_IF_M2 ();

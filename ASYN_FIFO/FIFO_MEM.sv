@@ -1,8 +1,11 @@
-module FIFO_MEM (wclk, wen, waddr, wdata, raddr, rdata);
+module FIFO_MEM 
+  #(
+    parameter DATA_SIZE = 32,
+    parameter ADDR_SIZE = 3
+  )
+  (wclk, wen, waddr, wdata, raddr, rdata);
 
-  parameter DATA_SIZE = 32;
-  parameter ADDR_SIZE = 3;
-  parameter DEPTH     = 1 << ADDR_SIZE;
+  parameter DEPTH = 1 << ADDR_SIZE;
 
   input  logic                 wclk;
   input  logic                 wen;
