@@ -57,7 +57,6 @@ module AXI_S_IF
   output logic [48:0]               M_AR_DATA,
   output logic [48:0]               M_AW_DATA,
   output logic [36:0]               M_W_DATA
-
 );
 
   logic        ar_wfull;

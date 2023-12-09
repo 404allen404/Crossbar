@@ -343,7 +343,10 @@ module AXI (
 
     .M_AR_VALID(M1_AR_VALID),
     .M_AW_VALID(M1_AW_VALID),
-    .M_W_VALID(M1_W_VALID)
+    .M_W_VALID(M1_W_VALID),
+    .M_AR_DATA(M1_AR_DATA),
+    .M_AW_DATA(M1_AW_DATA),
+    .M_W_DATA(M1_W_DATA)
   );
 
 
