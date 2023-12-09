@@ -1,6 +1,6 @@
 module WPTR_FULL 
   #(
-      parameter ADDR_SIZE = 3
+    parameter ADDR_SIZE = 3
   )
   (wclk, wrst, wpush, wfull, waddr, wptr, sync_rptr);
 
@@ -20,7 +20,7 @@ module WPTR_FULL
 
   assign wen     = wpush && ~wfull;
   assign waddr_w = {1'b0, waddr} + {ADDR_SIZE'd0, wen};
-  assign wptr_w  = (waddr_w >> 1) & waddr_w;
+  assign wptr_w  = (waddr_w >> 1) ^ waddr_w;
   assign wfull_w = (wptr_w == {~sync_rptr[ADDR_SIZE:ADDR_SIZE-1], sync_rptr[ADDR_SIZE-2:0]});
 
   always_ff @(posedge wclk) begin

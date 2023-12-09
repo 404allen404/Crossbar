@@ -7,6 +7,10 @@
 `include "./ASYN_FIFO/ASYN_FIFO.sv"
 `include "./ASYN_FIFO/FIFO_MEM.sv"
 `include "./ASYN_FIFO/2DFF.sv"
+// Decoder
+`include "./Decoder/AXI_Decoder.sv"
+// Arbiter
+`include "./Arbiter/P_Arbiter.sv"
 
 module AXI (
   input logic                       CPU_CLK_i,      
@@ -226,8 +230,8 @@ module AXI (
   output logic                      WVALID_S5_o,
   input  logic                      WREADY_S5_i,
   input  logic [`AXI_IDS_BITS-1:0]  BID_S5_i,
-  input logic [1:0]                 BRESP_S5_i,
-  input logic                       BVALID_S5_i,
+  input  logic [1:0]                BRESP_S5_i,
+  input  logic                      BVALID_S5_i,
   output logic                      BREADY_S5_o,
   // READ
   output logic [`AXI_IDS_BITS-1:0]  ARID_S5_o,
@@ -244,10 +248,95 @@ module AXI (
   input  logic                      RVALID_S5_i,
   output logic                      RREADY_S5_o
   
-);
+); 
 
-  AXI_S_IF AXI_S_IF_S0 ();
-  AXI_S_IF AXI_S_IF_S1 ();
+  logic [5:0] M0_AR_VALID
+  logic [5:0] M0_AW_VALID
+  logic [5:0] M0_W_VALID
+
+  logic [5:0] M1_AR_VALID
+  logic [5:0] M1_AW_VALID
+  logic [5:0] M1_W_VALID
+
+  AXI_S_IF #(4'd0) AXI_S_IF_S0 (
+    /* input */
+    .CPU_CLK_i(CPU_CLK_i),
+    .CPU_RST_i(CPU_RST_i),
+    .AXI_CLK_i(AXI_CLK_i),
+    .AXI_RST_i(AXI_RST_i),
+    .ARID_i(ARID_M0_i),
+    .ARADDR_i(ARADDR_M0_i),
+    .ARLEN_i(ARLEN_M0_i),
+    .ARSIZE_i(ARSIZE_M0_i),
+    .ARBURST_i(ARBURST_M0_i),
+    .ARVALID_i(ARVALID_M0_i),
+    .RREADY_i(RREADY_M0_i),
+    .AWID_i(4'd0),
+    .AWADDR_i(32'd0),
+    .AWLEN_i(4'd0),
+    .AWSIZE_i(3'd0),
+    .AWBURST_i(2'd0),
+    .AWVALID_i(1'b0),
+    .WDATA_i(32'd0),
+    .WSTRB_i(4'b1111),
+    .WLAST_i(1'b0),
+    .WVALID_i(1'b0),
+    .BREADY_i(1'b0),
+    /* output */
+    .ARREADY_o(ARREADY_M0_o),
+    .RID_o(RID_M0_o),
+    .RDATA_o(RDATA_M0_o),
+    .RRESP_o(RRESP_M0_o),
+    .RLAST_o(RLAST_M0_o),
+    .RVALID_o(RVALID_M0_o),
+    
+    .M_AR_VALID(M0_AR_VALID),
+    .M_AW_VALID(M0_AW_VALID),
+    .M_W_VALID(M0_W_VALID)
+  );
+
+  AXI_S_IF #(4'd1) AXI_S_IF_S1 (
+    /* input */
+    .CPU_CLK_i(CPU_CLK_i),
+    .CPU_RST_i(CPU_RST_i),
+    .AXI_CLK_i(AXI_CLK_i),
+    .AXI_RST_i(AXI_RST_i),
+    .ARID_i(ARID_M1_i),
+    .ARADDR_i(ARADDR_M1_i),
+    .ARLEN_i(ARLEN_M1_i),
+    .ARSIZE_i(ARSIZE_M1_i),
+    .ARBURST_i(ARBURST_M1_i),
+    .ARVALID_i(ARVALID_M1_i),
+    .RREADY_i(RREADY_M1_i),
+    .AWID_i(AWID_M1_i),
+    .AWADDR_i(AWADDR_M1_i),
+    .AWLEN_i(AWLEN_M1_i),
+    .AWSIZE_i(AWSIZE_M1_i),
+    .AWBURST_i(AWBURST_M1_i),
+    .AWVALID_i(AWVALID_M1_i),
+    .WDATA_i(WDATA_M1_i),
+    .WSTRB_i(WSTRB_M1_i),
+    .WLAST_i(WLAST_M1_i),
+    .WVALID_i(WVALID_M1_i),
+    .BREADY_i(BREADY_M1_i),
+    /* output */
+    .ARREADY_o(ARREADY_M1_o),
+    .RID_o(RID_M1_o),
+    .RDATA_o(RDATA_M1_o),
+    .RRESP_o(RRESP_M1_o),
+    .RLAST_o(RLAST_M1_o),
+    .RVALID_o(RVALID_M1_o),
+    .AWREADY_o(AWREADY_M1_o),
+    .WREADY_o(WREADY_M1_o),
+    .BID_o(BID_M1_o),
+    .BRESP_o(BRESP_M1_o),
+    .BVALID_o(BVALID_M1_o),
+
+    .M_AR_VALID(M1_AR_VALID),
+    .M_AW_VALID(M1_AW_VALID),
+    .M_W_VALID(M1_W_VALID)
+  );
+
 
   AXI_M_IF AXI_M_IF_M0 ();
   AXI_M_IF AXI_M_IF_M1 ();  
