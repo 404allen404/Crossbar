@@ -57,6 +57,7 @@ module AXI_S_IF
   output logic [48:0]               M_AR_DATA,
   output logic [48:0]               M_AW_DATA,
   output logic [36:0]               M_W_DATA
+
 );
 
   logic        ar_wfull;
@@ -85,6 +86,7 @@ module AXI_S_IF
   assign ARREADY_o = ~ar_wfull;
   assign AWREADY_o = ~aw_wfull;
   assign WREADY_o  = ~w_wfull;
+
   assign ar_id     = {M_NUM, ARID_i};
   assign aw_id     = {M_NUM, AWID_i};
   assign ar_wdata  = {ar_id, ARADDR_i, ARLEN_i, ARSIZE_i, ARBURST_i};
@@ -152,10 +154,10 @@ module AXI_S_IF
                             );
 
   ASYN_FIFO #( 6, 3) B_FIFO ( /* input */
-                              .wclk(CPU_CLK_i),
-                              .wrst(CPU_RST_i),
-                              .rclk(AXI_CLK_i),
-                              .rrst(AXI_RST_i),
+                              .wclk(AXI_CLK_i),
+                              .wrst(AXI_RST_i),
+                              .rclk(CPU_CLK_i),
+                              .rrst(CPU_RST_i),
                               .wpush(),
                               .wdata(),
                               .rpop(),
