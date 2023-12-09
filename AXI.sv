@@ -250,13 +250,19 @@ module AXI (
   
 ); 
 
-  logic [5:0] M0_AR_VALID
-  logic [5:0] M0_AW_VALID
-  logic [5:0] M0_W_VALID
+  logic [5:0]  M0_AR_VALID;
+  logic [5:0]  M0_AW_VALID;
+  logic [5:0]  M0_W_VALID;
+  logic [48:0] M0_AR_DATA;
+  logic [48:0] M0_AW_DATA;
+  logic [36:0] M0_W_DATA;
 
-  logic [5:0] M1_AR_VALID
-  logic [5:0] M1_AW_VALID
-  logic [5:0] M1_W_VALID
+  logic [5:0]  M1_AR_VALID;
+  logic [5:0]  M1_AW_VALID;
+  logic [5:0]  M1_W_VALID;
+  logic [48:0] M1_AR_DATA;
+  logic [48:0] M1_AW_DATA;
+  logic [36:0] M1_W_DATA;
 
   AXI_S_IF #(4'd0) AXI_S_IF_S0 (
     /* input */
@@ -292,7 +298,10 @@ module AXI (
     
     .M_AR_VALID(M0_AR_VALID),
     .M_AW_VALID(M0_AW_VALID),
-    .M_W_VALID(M0_W_VALID)
+    .M_W_VALID(M0_W_VALID),
+    .M_AR_DATA(M0_AR_DATA),
+    .M_AW_DATA(M0_AW_DATA),
+    .M_W_DATA(M0_W_DATA)
   );
 
   AXI_S_IF #(4'd1) AXI_S_IF_S1 (

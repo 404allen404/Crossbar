@@ -51,9 +51,12 @@ module AXI_S_IF
   output logic [1:0]                BRESP_o,   // 2-bit
   output logic                      BVALID_o,
 
-  output logic [5:0]                M_AR_VALID, 
-  output logic [5:0]                M_AW_VALID, 
-  output logic [5:0]                M_W_VALID
+  output logic [ 5:0]               M_AR_VALID,
+  output logic [ 5:0]               M_AW_VALID, 
+  output logic [ 5:0]               M_W_VALID,
+  output logic [48:0]               M_AR_DATA,
+  output logic [48:0]               M_AW_DATA,
+  output logic [36:0]               M_W_DATA
 
 );
 
@@ -88,6 +91,10 @@ module AXI_S_IF
   assign ar_wdata  = {ar_id, ARADDR_i, ARLEN_i, ARSIZE_i, ARBURST_i};
   assign aw_wdata  = {aw_id, AWADDR_i, AWLEN_i, AWSIZE_i, AWBURST_i};
   assign w_wdata   = {WDATA_i, WSTRB_i, WLAST_i};
+
+  assign M_AR_DATA = ar_rdata;
+  assign M_AW_DATA = aw_rdata;
+  assign M_W_DATA  = w_rdata;
 
   ASYN_FIFO #(49, 3) AR_FIFO  ( /* input */
                                 .wclk(CPU_CLK_i),
