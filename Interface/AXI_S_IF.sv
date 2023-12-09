@@ -60,10 +60,6 @@ module AXI_S_IF
 
 );
 
-  logic        ar_wfull;
-  logic        aw_wfull;
-  logic        w_wfull;
-
   logic [48:0] ar_wdata;
   logic [48:0] aw_wdata;
   logic [36:0] w_wdata;
@@ -72,16 +68,19 @@ module AXI_S_IF
   logic        aw_rpop;
   logic        w_rpop;
 
+  // ASYN_FIFO output
+  logic        ar_wfull;
+  logic        aw_wfull;
+  logic        w_wfull;
   logic        ar_rempty;
   logic        aw_rempty;
   logic        w_rempty;
-
-  logic [ 7:0] ar_id;
-  logic [ 7:0] aw_id;
-
   logic [48:0] ar_rdata;
   logic [48:0] aw_rdata;
   logic [36:0] w_rdata;
+
+  logic [ 7:0] ar_id;
+  logic [ 7:0] aw_id;
 
   assign ARREADY_o = ~ar_wfull;
   assign AWREADY_o = ~aw_wfull;
@@ -139,7 +138,7 @@ module AXI_S_IF
                               .rdata(w_rdata)
                             ); 
 
-  ASYN_FIFO #(39, 3) R_FIFO ( /* input */
+  ASYN_FIFO #(43, 3) R_FIFO ( /* input */
                               .wclk(AXI_CLK_i),
                               .wrst(AXI_RST_i),
                               .rclk(CPU_CLK_i),
@@ -153,7 +152,7 @@ module AXI_S_IF
                               .rdata()
                             );
 
-  ASYN_FIFO #( 6, 3) B_FIFO ( /* input */
+  ASYN_FIFO #(10, 3) B_FIFO ( /* input */
                               .wclk(AXI_CLK_i),
                               .wrst(AXI_RST_i),
                               .rclk(CPU_CLK_i),

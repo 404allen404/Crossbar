@@ -1,24 +1,24 @@
 module AXI_M_IF (
 
   /* input */ 
-  input logic                       AXI_CLK_i,
-  input logic                       AXI_RST_i,
-  input logic                       S_CLK_i,
-  input logic                       S_RST_i,
+  input  logic                      AXI_CLK_i,
+  input  logic                      AXI_RST_i,
+  input  logic                      S_CLK_i,
+  input  logic                      S_RST_i,
 
-  input logic                       M0_AR_FIFO_VALID;
-  input logic                       M0_AW_FIFO_VALID;
-  input logic                       M0_W_FIFO_VALID;
-  input logic                       M1_AR_FIFO_VALID;
-  input logic                       M1_AW_FIFO_VALID;
-  input logic                       M1_W_FIFO_VALID;
-
-  input logic [48:0]                M0_AR_FIFO_DATA;
-  input logic [48:0]                M0_AW_FIFO_DATA;
-  input logic [36:0]                M0_W_FIFO_DATA;
-  input logic [48:0]                M1_AR_FIFO_DATA;
-  input logic [48:0]                M1_AW_FIFO_DATA;
-  input logic [36:0]                M1_W_FIFO_DATA;
+  // P_Arbiter input
+  input  logic                      M0_AR_VALID;
+  input  logic                      M0_AW_VALID;
+  input  logic                      M0_W_VALID;
+  input  logic                      M1_AR_VALID;
+  input  logic                      M1_AW_VALID;
+  input  logic                      M1_W_VALID;
+  input  logic [48:0]               M0_AR_DATA;
+  input  logic [48:0]               M0_AW_DATA;
+  input  logic [36:0]               M0_W_DATA;
+  input  logic [48:0]               M1_AR_DATA;
+  input  logic [48:0]               M1_AW_DATA;
+  input  logic [36:0]               M1_W_DATA;
 
   input  logic                      AWREADY_i,
 
@@ -61,23 +61,56 @@ module AXI_M_IF (
 
   output logic                      BREADY_o,
 
+  // P_Arbiter output
+  output logic ar_in1_grant;
+  output logic ar_in2_grant;
+  output logic ar_sel;
+  output logic aw_in1_grant;
+  output logic aw_in2_grant;
+  output logic aw_sel;
+  output logic w_in1_grant;
+  output logic w_in2_grant;
+  output logic w_sel;
+
 );
 
-  logic ar_wfull;
-  logic aw_wfull;
-  logic w_wfull;
+  // ASYN_FIFO input
+  logic [42:0] r_wdata;
+  logic [ 9:0] b_wdata;
 
-  logic ar_rempty;
-  logic aw_rempty;
-  logic w_rempty;
+  // ASYN_FIFO output
+  logic        ar_wfull;
+  logic        aw_wfull;
+  logic        w_wfull;
+  logic        ar_rempty;
+  logic        aw_rempty;
+  logic        w_rempty;
+  logic [48:0] ar_rdata;
+  logic [48:0] aw_rdata;
+  logic [36:0] w_rdata;
 
-  logic [48:0] ar_wdata;
-  logic [48:0] aw_wdata;
-  logic [36:0] w_wdata;
+  logic        r_wfull;
+  logic        b_wfull;
 
-  logic ar_out_valid;
-  logic aw_out_valid;
-  logic w_out_valid;
+  // P_Arbiter input
+  logic ar_out_grant;
+  logic aw_out_grant;
+  logic w_out_grant;
+
+  // P_Arbiter output
+  logic [48:0] ar_out;
+  logic [48:0] aw_out;
+  logic [36:0] w_out;
+  logic        ar_out_valid;
+  logic        aw_out_valid;
+  logic        w_out_valid;
+
+  assign ar_out_grant = ar_out_valid && ~ar_wfull;
+  assign aw_out_grant = aw_out_valid && ~aw_wfull;
+  assign w_out_grant  = w_out_valid && ~w_wfull;
+
+  assign RREADY_o = ~r_wfull;
+  assign BREADY_o = ~b_wfull;
 
   ASYN_FIFO #(49, 3) AR_FIFO (
     /* input */
@@ -85,8 +118,8 @@ module AXI_M_IF (
     .wrst(AXI_RST_i),
     .rclk(S_CLK_i),
     .rrst(S_RST_i),
-    .wpush(AR_FIFO_VALID),
-    .wdata(AR_FIFO_DATA),
+    .wpush(ar_out_valid),
+    .wdata(ar_out),
     .rpop(ARREADY_i),
     /* output */
     .wfull(ar_wfull),
@@ -100,13 +133,13 @@ module AXI_M_IF (
     .wrst(AXI_RST_i),
     .rclk(S_CLK_i),
     .rrst(S_RST_i),
-    .wpush(),
-    .wdata(),
-    .rpop(),
+    .wpush(aw_out_valid),
+    .wdata(aw_out),
+    .rpop(AWREADY_i),
     /* output */
-    .wfull(),
-    .rempty(),
-    .rdata()
+    .wfull(aw_wfull),
+    .rempty(aw_rempty),
+    .rdata(aw_rdata)
   );
 
   ASYN_FIFO #(37, 3) W_FIFO (
@@ -115,33 +148,60 @@ module AXI_M_IF (
     .wrst(AXI_RST_i),
     .rclk(S_CLK_i),
     .rrst(S_RST_i),
-    .wpush(),
-    .wdata(),
+    .wpush(w_out_valid),
+    .wdata(w_out),
+    .rpop(WREADY_i),
+    /* output */
+    .wfull(w_wfull),
+    .rempty(w_rempty),
+    .rdata(w_rdata)
+  );
+
+  ASYN_FIFO #(43, 3) R_FIFO (
+    /* input */
+    .wclk(S_CLK_i),
+    .wrst(S_RST_i),
+    .rclk(AXI_CLK_i),
+    .rrst(AXI_RST_i),
+    .wpush(RVALID_i),
+    .wdata(r_wdata),
     .rpop(),
     /* output */
-    .wfull(),
+    .wfull(r_wfull),
     .rempty(),
     .rdata()
   );
 
-  ASYN_FIFO #(39, 3) R_FIFO ();
-  ASYN_FIFO #( 6, 3) B_FIFO ();
+  ASYN_FIFO #(10, 3) B_FIFO (
+    /* input */
+    .wclk(S_CLK_i),
+    .wrst(S_RST_i),
+    .rclk(AXI_CLK_i),
+    .rrst(AXI_RST_i),
+    .wpush(BVALID_i),
+    .wdata(b_wdata),
+    .rpop(),
+    /* output */
+    .wfull(b_wfull),
+    .rempty(),
+    .rdata()
+  );
 
   P_Arbiter #(49) AR_Arbiter (
     /* input */
     .AXI_CLK_i(AXI_CLK_i),
     .AXI_RST_i(AXI_RST_i),
-    .in1(M0_AR_FIFO_DATA),
-    .in2(M1_AR_FIFO_DATA),
-    .in1_valid(M0_AR_FIFO_VALID),
-    .in2_valid(M1_AR_FIFO_VALID),
-    .out_grant(),
+    .in1(M0_AR_DATA),
+    .in2(M1_AR_DATA),
+    .in1_valid(M0_AR_VALID),
+    .in2_valid(M1_AR_VALID),
+    .out_grant(ar_out_grant),
     /* output */
-    .out(),
-    .out_valid(),
-    .in1_grant(),
-    .in2_grant(),
-    .sel()
+    .out(ar_out),
+    .out_valid(ar_out_valid),
+    .in1_grant(ar_in1_grant),
+    .in2_grant(ar_in2_grant),
+    .sel(ar_sel)
   );
 
   P_Arbiter #(49) AW_Arbiter (
@@ -150,15 +210,15 @@ module AXI_M_IF (
     .AXI_RST_i(AXI_RST_i),
     .in1(M0_AW_FIFO_DATA),
     .in2(M1_AW_FIFO_DATA),
-    .in1_valid(M0_AW_FIFO_VALID),
-    .in2_valid(M1_AW_FIFO_VALID),
-    .out_grant(),
+    .in1_valid(M0_AW_VALID),
+    .in2_valid(M1_AW_VALID),
+    .out_grant(aw_out_grant),
     /* output */
-    .out(),
-    .out_valid(),
-    .in1_grant(),
-    .in2_grant(),
-    .sel()
+    .out(aw_out),
+    .out_valid(aw_out_valid),
+    .in1_grant(aw_in1_grant),
+    .in2_grant(aw_in2_grant),
+    .sel(aw_sel)
   );
 
   P_Arbiter #(37) W_Arbiter (
@@ -167,15 +227,15 @@ module AXI_M_IF (
     .AXI_RST_i(AXI_RST_i),
     .in1(M0_W_FIFO_DATA),
     .in2(M1_W_FIFO_DATA),
-    .in1_valid(M0_W_FIFO_VALID),
-    .in2_valid(M1_W_FIFO_VALID),
-    .out_grant(),
+    .in1_valid(M0_W_VALID),
+    .in2_valid(M1_W_VALID),
+    .out_grant(w_out_grant),
     /* output */
-    .out(),
-    .out_valid(),
-    .in1_grant(),
-    .in2_grant(),
-    .sel()
+    .out(w_out),
+    .out_valid(w_out_valid),
+    .in1_grant(w_in1_grant),
+    .in2_grant(w_in2_grant),
+    .sel(w_sel)
   );
 
 endmodule
