@@ -7,10 +7,15 @@
 `include "./ASYN_FIFO/ASYN_FIFO.sv"
 `include "./ASYN_FIFO/FIFO_MEM.sv"
 `include "./ASYN_FIFO/2DFF.sv"
+`include "./ASYN_FIFO/RPTR_EMPTY.sv"
+`include "./ASYN_FIFO/WPTR_FULL.sv"
 // Decoder
-`include "./Decoder/AXI_Decoder.sv"
+`include "./Decoder/ADDR_Decoder.sv"
+`include "./Decoder/ID_Decoder.sv"
 // Arbiter
 `include "./Arbiter/P_Arbiter.sv"
+// MUX
+`include "./MUX/6TO1_MUX.sv"
 
 module AXI (
   input logic                       CPU_CLK_i,      

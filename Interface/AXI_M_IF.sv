@@ -61,6 +61,11 @@ module AXI_M_IF (
 
   output logic                      BREADY_o,
 
+  output logic [1:0]                S_B_VALID;
+  output logic [1:0]                S_R_VALID;
+  output logic [9:0]                S_B_DATA;
+  output logic [42:0]               S_R_DATA;
+
   // P_Arbiter output
   output logic ar_in1_grant;
   output logic ar_in2_grant;
@@ -92,6 +97,12 @@ module AXI_M_IF (
   logic        r_wfull;
   logic        b_wfull;
 
+  logic [42:0] r_rdata;
+  logic [9:0]  b_rdata;
+
+  logic        r_rempty;
+  logic        b_rempty;
+
   // P_Arbiter input
   logic ar_out_grant;
   logic aw_out_grant;
@@ -108,6 +119,30 @@ module AXI_M_IF (
   assign ar_out_grant = ar_out_valid && ~ar_wfull;
   assign aw_out_grant = aw_out_valid && ~aw_wfull;
   assign w_out_grant  = w_out_valid && ~w_wfull;
+
+  assign r_wdata = {RID_i, RDATA_i, RRESP_i, RLAST_i};
+  assign b_wdata = {BID_i, BRESP_i};
+
+  // AXI_M_IF to Slave
+  assign ARID_o    = ar_rdata[48:41]; 
+  assign ARADDR_o  = ar_rdata[40:9];
+  assign ARLEN_o   = ar_rdata[8:5];
+  assign ARSIZE_o  = ar_rdata[4:2];
+  assign ARBURST_o = ar_rdata[1:0]
+
+  assign AWID_o    = aw_rdata[48:41]; 
+  assign AWADDR_o  = aw_rdata[40:9];
+  assign AWLEN_o   = aw_rdata[8:5];
+  assign AWSIZE_o  = aw_rdata[4:2];
+  assign AWBURST_o = aw_rdata[1:0]
+
+  assign WDATA_o   = w_rdata[36:5];
+  assign WSTRB_o   = w_rdata[4:1];
+  assign WLAST_o   = w_rdata[0];
+
+  assign ARVALID_o = ~ar_rempty;  
+  assign AWVALID_o = ~aw_rempty;
+  assign WVALID_o  = ~w_rempty;
 
   assign RREADY_o = ~r_wfull;
   assign BREADY_o = ~b_wfull;
@@ -165,11 +200,11 @@ module AXI_M_IF (
     .rrst(AXI_RST_i),
     .wpush(RVALID_i),
     .wdata(r_wdata),
-    .rpop(),
+    .rpop(), // !
     /* output */
     .wfull(r_wfull),
-    .rempty(),
-    .rdata()
+    .rempty(r_rempty),
+    .rdata(r_rdata)
   );
 
   ASYN_FIFO #(10, 3) B_FIFO (
@@ -180,11 +215,11 @@ module AXI_M_IF (
     .rrst(AXI_RST_i),
     .wpush(BVALID_i),
     .wdata(b_wdata),
-    .rpop(),
+    .rpop(), //
     /* output */
     .wfull(b_wfull),
-    .rempty(),
-    .rdata()
+    .rempty(b_rempty),
+    .rdata(b_rdata)
   );
 
   P_Arbiter #(49) AR_Arbiter (
@@ -236,6 +271,22 @@ module AXI_M_IF (
     .in1_grant(w_in1_grant),
     .in2_grant(w_in2_grant),
     .sel(w_sel)
+  );
+
+  ID_Decoder R_Decoder (
+    /* input */
+    .id_in(r_rdata[42:35]),
+    .id_valid(~r_rempty),
+    /* output */
+    .S_VALID(S_R_VALID)
+  );
+
+  ID_Decoder B_Decoder (
+    /* input */
+    .id_in(r_rdata[9:2]),
+    .id_valid(~b_rempty),
+    /* output */
+    .S_VALID(S_B_VALID)
   );
 
 endmodule

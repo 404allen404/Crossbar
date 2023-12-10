@@ -34,6 +34,11 @@ module AXI_S_IF
 
   input  logic                      BREADY_i,                
 
+  input  logic [5:0]                R_MUX_sel;
+  input  logic [5:0]                B_MUX_sel;
+  input  logic [42:0]               R_MUX_data;
+  input  logic [9:0]                B_MUX_data;
+
   /* output */
   output logic                      ARREADY_o,
 
@@ -60,6 +65,12 @@ module AXI_S_IF
 
 );
 
+  logic [42:0] R_MUX_out;
+  logic [9:0]  B_MUX_out;
+
+  logic r_wpush;
+  logic b_wpush;
+
   logic [48:0] ar_wdata;
   logic [48:0] aw_wdata;
   logic [36:0] w_wdata;
@@ -79,9 +90,20 @@ module AXI_S_IF
   logic [48:0] aw_rdata;
   logic [36:0] w_rdata;
 
+  logic [42:0] r_rdata;
+  logic [ 9:0] b_rdata;
+  logic        r_rempty;
+  logic        b_rempty;
+  logic        r_wfull;
+  logic        b_wfull;
+
   logic [ 7:0] ar_id;
   logic [ 7:0] aw_id;
 
+  assign r_wpush = |R_MUX_sel;
+  assign w_wpush = |B_MUX_sel;
+
+  // AXI_S_IF to Master
   assign ARREADY_o = ~ar_wfull;
   assign AWREADY_o = ~aw_wfull;
   assign WREADY_o  = ~w_wfull;
@@ -143,13 +165,13 @@ module AXI_S_IF
                               .wrst(AXI_RST_i),
                               .rclk(CPU_CLK_i),
                               .rrst(CPU_RST_i),
-                              .wpush(),
-                              .wdata(),
-                              .rpop(),
+                              .wpush(r_wpush),
+                              .wdata(R_MUX_out),
+                              .rpop(RREADY_i),
                               /* output */
-                              .wfull(),
-                              .rempty(),
-                              .rdata()
+                              .wfull(r_wfull),
+                              .rempty(r_rempty),
+                              .rdata(r_rdata)
                             );
 
   ASYN_FIFO #(10, 3) B_FIFO ( /* input */
@@ -157,28 +179,54 @@ module AXI_S_IF
                               .wrst(AXI_RST_i),
                               .rclk(CPU_CLK_i),
                               .rrst(CPU_RST_i),
-                              .wpush(),
-                              .wdata(),
-                              .rpop(),
+                              .wpush(b_wpush),
+                              .wdata(B_MUX_out),
+                              .rpop(BREADY_i),
                               /* output */
-                              .wfull(),
-                              .rempty(),
-                              .rdata()
+                              .wfull(b_wfull),
+                              .rempty(b_rempty),
+                              .rdata(b_rdata)
                             );
 
-  AXI_Decoder AR_Decoder (
+  6TO1_MUX R_MUX #(43) (
+    /* input */
+    .sel(R_MUX_sel),
+    .in1(R_MUX_data[0]),
+    .in2(R_MUX_data[1]),
+    .in3(R_MUX_data[2]),
+    .in4(R_MUX_data[3]),
+    .in5(R_MUX_data[4]),
+    .in6(R_MUX_data[5]),
+    /* output */
+    .out(R_MUX_out)
+  );
+
+  6TO1_MUX B_MUX #(10) (
+    /* input */
+    .sel(B_MUX_sel),
+    .in1(B_MUX_data[0]),
+    .in2(B_MUX_data[1]),
+    .in3(B_MUX_data[2]),
+    .in4(B_MUX_data[3]),
+    .in5(B_MUX_data[4]),
+    .in6(B_MUX_data[5]),
+    /* output */
+    .out(B_MUX_out)
+  );
+
+  ADDR_Decoder AR_Decoder (
     .addr_valid(~ar_rempty),
     .addr_in(ar_rdata[40:9]),
     .M_VALID(M_AR_VALID)
   );
 
-  AXI_Decoder AW_Decoder (
+  ADDR_Decoder AW_Decoder (
     .addr_valid(~aw_rempty),
     .addr_in(aw_rdata[40:9]),
     .M_VALID(M_AW_VALID)
   );
 
-  AXI_Decoder W_Decoder (
+  ADDR_Decoder W_Decoder (
     .addr_valid(),
     .addr_in(),
     .M_VALID()
