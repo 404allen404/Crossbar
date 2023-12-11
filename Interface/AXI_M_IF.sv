@@ -36,6 +36,9 @@ module AXI_M_IF (
   input  logic                      RLAST_i,
   input  logic                      RVALID_i,
 
+  input  logic                      b_rpop;
+  input  logic                      r_rpop;
+
   /* output */
 
   output logic [`AXI_IDS_BITS-1:0]  AWID_o,
@@ -115,6 +118,9 @@ module AXI_M_IF (
   logic        ar_out_valid;
   logic        aw_out_valid;
   logic        w_out_valid;
+
+  assign S_B_DATA = b_rdata;
+  assign S_R_DATA = r_rdata;
 
   assign ar_out_grant = ar_out_valid && ~ar_wfull;
   assign aw_out_grant = aw_out_valid && ~aw_wfull;
@@ -200,7 +206,7 @@ module AXI_M_IF (
     .rrst(AXI_RST_i),
     .wpush(RVALID_i),
     .wdata(r_wdata),
-    .rpop(), // !
+    .rpop(r_rpop),
     /* output */
     .wfull(r_wfull),
     .rempty(r_rempty),
@@ -215,7 +221,7 @@ module AXI_M_IF (
     .rrst(AXI_RST_i),
     .wpush(BVALID_i),
     .wdata(b_wdata),
-    .rpop(), //
+    .rpop(b_rpop),
     /* output */
     .wfull(b_wfull),
     .rempty(b_rempty),

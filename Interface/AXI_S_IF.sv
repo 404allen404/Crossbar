@@ -1,7 +1,7 @@
 module AXI_S_IF 
 
 #(
-  parameter M_NUM = 4'd0;
+  parameter M_NUM = 4'd0
 )
 
 (
@@ -27,17 +27,32 @@ module AXI_S_IF
   input logic [1:0]                 AWBURST_i, // 2-bit
   input logic                       AWVALID_i,
 
-  input  logic [`AXI_DATA_BITS-1:0] WDATA_i,   // 32-bit
-  input  logic [`AXI_STRB_BITS-1:0] WSTRB_i,   // 4-bit
-  input  logic                      WLAST_i,   // 1-bit
-  input  logic                      WVALID_i,
+  input logic [`AXI_DATA_BITS-1:0]  WDATA_i,   // 32-bit
+  input logic [`AXI_STRB_BITS-1:0]  WSTRB_i,   // 4-bit
+  input logic                       WLAST_i,   // 1-bit
+  input logic                       WVALID_i,
+  input logic                       BREADY_i,
 
-  input  logic                      BREADY_i,                
+  input logic [5:0]                 R_MUX_sel;
+  input logic [5:0]                 B_MUX_sel;
 
-  input  logic [5:0]                R_MUX_sel;
-  input  logic [5:0]                B_MUX_sel;
-  input  logic [42:0]               R_MUX_data;
-  input  logic [9:0]                B_MUX_data;
+  input logic [42:0]                S0_R_MUX_data;
+  input logic [42:0]                S1_R_MUX_data;
+  input logic [42:0]                S2_R_MUX_data;
+  input logic [42:0]                S3_R_MUX_data;
+  input logic [42:0]                S4_R_MUX_data;
+  input logic [42:0]                S5_R_MUX_data;
+
+  input logic [9:0]                 S0_B_MUX_data;
+  input logic [9:0]                 S1_B_MUX_data;
+  input logic [9:0]                 S2_B_MUX_data;
+  input logic [9:0]                 S3_B_MUX_data;
+  input logic [9:0]                 S4_B_MUX_data;
+  input logic [9:0]                 S5_B_MUX_data;
+
+  input logic [5:0]                 ar_in_grant; 
+  input logic [5:0]                 aw_in_grant;
+  input logic [5:0]                 w_in_grant;
 
   /* output */
   output logic                      ARREADY_o,
@@ -61,7 +76,10 @@ module AXI_S_IF
   output logic [ 5:0]               M_W_VALID,
   output logic [48:0]               M_AR_DATA,
   output logic [48:0]               M_AW_DATA,
-  output logic [36:0]               M_W_DATA
+  output logic [36:0]               M_W_DATA,
+
+  output logic [5:0]                r_rpop,
+  output logic [5:0]                b_rpop
 
 );
 
@@ -101,7 +119,7 @@ module AXI_S_IF
   logic [ 7:0] aw_id;
 
   assign r_wpush = |R_MUX_sel;
-  assign w_wpush = |B_MUX_sel;
+  assign b_wpush = |B_MUX_sel;
 
   // AXI_S_IF to Master
   assign ARREADY_o = ~ar_wfull;
@@ -117,6 +135,28 @@ module AXI_S_IF
   assign M_AR_DATA = ar_rdata;
   assign M_AW_DATA = aw_rdata;
   assign M_W_DATA  = w_rdata;
+
+  assign ar_rpop = |ar_in_grant; 
+  assign aw_rpop = |aw_in_grant;
+  assign w_rpop  = |w_in_grant;
+
+  always_comb begin
+    if(r_wpush && ~r_wfull) begin
+      r_rpop = R_MUX_sel;
+    end
+    else begin
+      r_rpop = 6'b000000;
+    end
+  end
+
+  always_comb begin
+    if(b_wpush && ~b_wfull) begin
+      b_rpop = B_MUX_sel;
+    end
+    else begin
+      r_rpop = 6'b000000;
+    end
+  end
 
   ASYN_FIFO #(49, 3) AR_FIFO  ( /* input */
                                 .wclk(CPU_CLK_i),
@@ -191,12 +231,12 @@ module AXI_S_IF
   6TO1_MUX R_MUX #(43) (
     /* input */
     .sel(R_MUX_sel),
-    .in1(R_MUX_data[0]),
-    .in2(R_MUX_data[1]),
-    .in3(R_MUX_data[2]),
-    .in4(R_MUX_data[3]),
-    .in5(R_MUX_data[4]),
-    .in6(R_MUX_data[5]),
+    .in1(S0_R_MUX_data),
+    .in2(S1_R_MUX_data),
+    .in3(S2_R_MUX_data),
+    .in4(S3_R_MUX_data),
+    .in5(S4_R_MUX_data),
+    .in6(S5_R_MUX_data),
     /* output */
     .out(R_MUX_out)
   );
@@ -204,12 +244,12 @@ module AXI_S_IF
   6TO1_MUX B_MUX #(10) (
     /* input */
     .sel(B_MUX_sel),
-    .in1(B_MUX_data[0]),
-    .in2(B_MUX_data[1]),
-    .in3(B_MUX_data[2]),
-    .in4(B_MUX_data[3]),
-    .in5(B_MUX_data[4]),
-    .in6(B_MUX_data[5]),
+    .in1(S0_B_MUX_data),
+    .in2(S1_B_MUX_data),
+    .in3(S2_B_MUX_data),
+    .in4(S3_B_MUX_data),
+    .in5(S4_B_MUX_data),
+    .in6(S5_B_MUX_data),
     /* output */
     .out(B_MUX_out)
   );
@@ -227,9 +267,9 @@ module AXI_S_IF
   );
 
   ADDR_Decoder W_Decoder (
-    .addr_valid(),
+    .addr_valid(~w_rempty),
     .addr_in(),
-    .M_VALID()
+    .M_VALID(M_W_VALID)
   );
 
 endmodule
