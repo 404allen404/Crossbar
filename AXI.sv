@@ -516,7 +516,7 @@ module AXI (
     .aw_sel(aw_sel[0]),
     .w_in1_grant(w_in1_grant[0]),
     .w_in2_grant(w_in2_grant[0]),
-    .w_sel(w_sel[0]),
+    .w_sel(w_sel[0])
   );
 
   AXI_M_IF AXI_M_IF_M1 (
@@ -582,7 +582,7 @@ module AXI (
     .aw_sel(aw_sel[1]),
     .w_in1_grant(w_in1_grant[1]),
     .w_in2_grant(w_in2_grant[1]),
-    .w_sel(w_sel[1]),
+    .w_sel(w_sel[1])
   );  
 
   AXI_M_IF AXI_M_IF_M2 (
@@ -648,7 +648,7 @@ module AXI (
     .aw_sel(aw_sel[2]),
     .w_in1_grant(w_in1_grant[2]),
     .w_in2_grant(w_in2_grant[2]),
-    .w_sel(w_sel[2]),
+    .w_sel(w_sel[2])
   );
 
   AXI_M_IF AXI_M_IF_M3 (
@@ -714,7 +714,7 @@ module AXI (
     .aw_sel(aw_sel[3]),
     .w_in1_grant(w_in1_grant[3]),
     .w_in2_grant(w_in2_grant[3]),
-    .w_sel(w_sel[3]),
+    .w_sel(w_sel[3])
   );
 
   AXI_M_IF AXI_M_IF_M4 (
@@ -780,7 +780,7 @@ module AXI (
     .aw_sel(aw_sel[4]),
     .w_in1_grant(w_in1_grant[4]),
     .w_in2_grant(w_in2_grant[4]),
-    .w_sel(w_sel[4]),
+    .w_sel(w_sel[4])
   );
 
   AXI_M_IF AXI_M_IF_M5 (
@@ -846,7 +846,7 @@ module AXI (
     .aw_sel(aw_sel[5]),
     .w_in1_grant(w_in1_grant[5]),
     .w_in2_grant(w_in2_grant[5]),
-    .w_sel(w_sel[5]),
+    .w_sel(w_sel[5])
   );
 
 endmodule

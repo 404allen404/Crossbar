@@ -83,6 +83,8 @@ module AXI_S_IF
 
 );
 
+  logic [31:0] w_addr_in;
+
   logic [42:0] R_MUX_out;
   logic [9:0]  B_MUX_out;
 
@@ -154,7 +156,7 @@ module AXI_S_IF
       b_rpop = B_MUX_sel;
     end
     else begin
-      r_rpop = 6'b000000;
+      b_rpop = 6'b000000;
     end
   end
 
@@ -268,8 +270,17 @@ module AXI_S_IF
 
   ADDR_Decoder W_Decoder (
     .addr_valid(~w_rempty),
-    .addr_in(),
+    .addr_in(w_addr_in),
     .M_VALID(M_W_VALID)
   );
+
+  always_ff @(posedge AXI_CLK_i) begin
+    if(AXI_RST_i) begin
+      w_addr_in <= 32'd0;
+    end
+    else if(aw_rpop) begin
+      w_addr_in <= aw_rdata[40:9];
+    end
+  end
 
 endmodule
